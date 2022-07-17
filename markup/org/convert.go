@@ -16,6 +16,7 @@ package org
 
 import (
 	"bytes"
+	"strings"
 
 	"github.com/gohugoio/hugo/identity"
 
@@ -51,8 +52,15 @@ func (c *orgConverter) Convert(ctx converter.RenderContext) (converter.Result, e
 		return afero.ReadFile(c.cfg.ContentFs, filename)
 	}
 	writer := org.NewHTMLWriter()
-	writer.HighlightCodeBlock = func(source, lang string, inline bool) string {
-		highlightedSource, err := c.cfg.Highlight(source, lang, "")
+	writer.HighlightCodeBlock = func(source, lang string, inline bool, params map[string]string) string {
+		opts := map[string]any{}
+		if params != nil {
+
+			for k, v := range params {
+				opts[strings.Replace(k, ":", "", 1)] = v
+			}
+		}
+		highlightedSource, err := c.cfg.Highlight(source, lang, opts)
 		if err != nil {
 			logger.Errorf("Could not highlight source as lang %s. Using raw source.", lang)
 			return source
